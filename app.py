@@ -128,7 +128,8 @@ st.markdown("""
 
     /* Tabs styling */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 24px;
+        justify-content: center;
+        gap: 40px; /* Padding between tabs */
         margin-bottom: 24px;
         margin-top: 16px;
     }
@@ -197,9 +198,16 @@ def get_performance_metrics():
     report   = classification_report(
         y_test, y_pred, target_names=CLASS_LABELS, output_dict=True
     )
-    return accuracy, report
+    
+    # Compute class averages for comparison chart
+    df = pd.DataFrame(X, columns=FEATURE_NAMES)
+    df['target'] = y
+    averages = df.groupby('target').mean()
+    averages.index = CLASS_LABELS
+    
+    return accuracy, report, averages
 
-accuracy, report_dict = get_performance_metrics()
+accuracy, report_dict, class_averages = get_performance_metrics()
 
 importances      = model.feature_importances_
 top_feature_idx  = int(np.argmax(importances))
@@ -310,6 +318,19 @@ with tab_predict:
                     )
 
                 logging.info(f"Prediction: {input_array.tolist()} → {predicted_crop} (Confidence: {confidence:.1f}%)")
+
+                st.markdown("---")
+                st.subheader("📊 Your Input vs. Class Average")
+                st.markdown(f"Comparing your custom measurements against the typical **{predicted_crop}**.")
+                
+                # Comparison Chart
+                predicted_class_label = CLASS_LABELS[prediction]
+                comparison_df = pd.DataFrame({
+                    "Your Input": input_array[0],
+                    f"Average {predicted_class_label}": class_averages.loc[predicted_class_label].values
+                }, index=FEATURE_NAMES)
+                
+                st.bar_chart(comparison_df, use_container_width=True)
 
             except Exception as e:
                 st.error(f"Prediction error: {str(e)}")
