@@ -64,16 +64,6 @@ st.markdown("""
         margin: 0 auto;
         line-height: 1.5;
     }
-
-    /* Premium Card Styles */
-    .premium-card {
-        background-color: #ffffff;
-        border-radius: 12px;
-        padding: 28px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-        margin-bottom: 20px;
-        border: 1px solid #e2e8f0;
-    }
     
     /* Result Card (Green Theme) */
     .success-card {
@@ -127,7 +117,7 @@ st.markdown("""
     /* Inputs */
     .stNumberInput>div>div>input {
         border-radius: 8px !important;
-        background-color: #f8fafc !important;
+        background-color: #ffffff !important;
         border: 1px solid #cbd5e1 !important;
     }
     
@@ -163,15 +153,6 @@ st.markdown("""
     [data-testid="stMetricValue"] {
         font-weight: 700 !important;
         color: #0f172a !important;
-    }
-    
-    /* Titles inside cards */
-    .card-title {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #1e293b;
-        margin-bottom: 1rem;
-        margin-top: 0;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -251,9 +232,8 @@ tab_predict, tab_performance, tab_insights = st.tabs([
 # ══════════════════════════════════════════════
 with tab_predict:
 
-    # ── Input Section (Card) ──
-    st.markdown('<div class="premium-card">', unsafe_allow_html=True)
-    st.markdown('<h3 class="card-title">📋 Measurement Input</h3>', unsafe_allow_html=True)
+    st.subheader("📋 Measurement Input")
+    st.markdown("Enter the crop measurements below to predict the variety.")
     
     selected_demo = st.selectbox(
         "🔎 Quick Demo (Presets)",
@@ -266,11 +246,9 @@ with tab_predict:
     col1, col2 = st.columns(2, gap="large")
     with col1:
         sepal_length = st.number_input("🌿 Leaf Length (cm)", min_value=0.0, value=def_sl, format="%.2f", key="sl")
-        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
         sepal_width  = st.number_input("🌿 Leaf Width (cm)",  min_value=0.0, value=def_sw, format="%.2f", key="sw")
     with col2:
         petal_length = st.number_input("🌸 Petal Length (cm)", min_value=0.0, value=def_pl, format="%.2f", key="pl")
-        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
         petal_width  = st.number_input("🌸 Petal Width (cm)",  min_value=0.0, value=def_pw, format="%.2f", key="pw")
     
     st.markdown("<br>", unsafe_allow_html=True)
@@ -282,8 +260,6 @@ with tab_predict:
     with btn2:
         if st.button("🔄 Reset Form", use_container_width=True):
             st.rerun()
-
-    st.markdown('</div>', unsafe_allow_html=True)
 
     # ── Prediction Result ──
     if predict_clicked:
@@ -310,14 +286,13 @@ with tab_predict:
                 st.markdown("<br>", unsafe_allow_html=True)
                 
                 # Metrics Card
-                st.markdown('<div class="premium-card">', unsafe_allow_html=True)
-                st.markdown('<h3 class="card-title">🎯 Prediction Metrics</h3>', unsafe_allow_html=True)
+                st.subheader("🎯 Prediction Metrics")
                 m1, m2 = st.columns(2)
                 m1.metric("Confidence Score", f"{confidence:.1f}%")
                 m2.metric("Predicted Class ID", f"Class {prediction}")
                 
                 # Dynamic insight based on input
-                st.markdown("<hr style='margin: 1.5rem 0; border-top: 1px dashed #cbd5e1;'>", unsafe_allow_html=True)
+                st.markdown("---")
                 if petal_length > 3.75:
                     st.info(
                         f"📌 **Insight:** Your input has a high Petal Length ({petal_length:.2f} cm), "
@@ -333,7 +308,6 @@ with tab_predict:
                         f"📌 **Insight:** Your Petal Length ({petal_length:.2f} cm) falls in a transition zone. "
                         f"The model relied on multiple features to make this prediction."
                     )
-                st.markdown('</div>', unsafe_allow_html=True)
 
                 logging.info(f"Prediction: {input_array.tolist()} → {predicted_crop} (Confidence: {confidence:.1f}%)")
 
@@ -346,15 +320,18 @@ with tab_predict:
 # ══════════════════════════════════════════════
 with tab_performance:
 
-    st.markdown('<div class="premium-card">', unsafe_allow_html=True)
-    st.markdown('<h3 class="card-title">📈 Overall Accuracy</h3>', unsafe_allow_html=True)
+    st.subheader("📈 Overall Accuracy")
+    st.info("The model was tested on 20% of the dataset that it had never seen before. An accuracy of 1.00 (100%) means it guessed every single crop correctly in the test set. This is common for this specific dataset because the crop varieties are very distinct!")
     st.metric("Test Set Accuracy", f"{accuracy:.4f}", delta="Held-out dataset")
-    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="premium-card">', unsafe_allow_html=True)
-    st.markdown('<h3 class="card-title">📋 Classification Report</h3>', unsafe_allow_html=True)
-    st.caption("Per-class breakdown of Precision, Recall, and F1-Score based on 20% test data.")
+    st.markdown("---")
 
+    st.subheader("📋 Classification Report")
+    st.markdown("This table breaks down the model's performance for each specific crop variety:")
+    st.markdown("- **Precision:** When the model predicted a variety, how often was it right?")
+    st.markdown("- **Recall:** Out of all the actual crops of a variety, how many did the model find?")
+    st.markdown("- **F1-Score:** The balance between Precision and Recall. 1.0 means perfect!")
+    
     rows = []
     for label in CLASS_LABELS:
         r = report_dict[label]
@@ -367,16 +344,15 @@ with tab_performance:
         })
     report_df = pd.DataFrame(rows).set_index("Crop Variety")
     st.dataframe(report_df, use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="premium-card">', unsafe_allow_html=True)
-    st.markdown('<h3 class="card-title">⚖️ Weighted Averages</h3>', unsafe_allow_html=True)
+    st.markdown("---")
+
+    st.subheader("⚖️ Weighted Averages")
     wa = report_dict["weighted avg"]
     c1, c2, c3 = st.columns(3)
     c1.metric("Precision Avg", f"{wa['precision']:.3f}")
     c2.metric("Recall Avg",    f"{wa['recall']:.3f}")
     c3.metric("F1-Score Avg",  f"{wa['f1-score']:.3f}")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════
 # TAB 3 ─ INSIGHTS
@@ -391,16 +367,16 @@ with tab_insights:
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="premium-card">', unsafe_allow_html=True)
-    st.markdown('<h3 class="card-title">📌 Feature Importance Scores</h3>', unsafe_allow_html=True)
+    st.subheader("📌 Feature Importance Scores")
+    st.markdown("Feature importance tells us **which measurements the AI looks at the most** when making a decision. A higher score means the AI relies heavily on that specific measurement.")
     cols = st.columns(4)
     for col, name, score in zip(cols, FEATURE_NAMES, importances):
         label = f"⭐ {name}" if name == top_feature_name else name
         col.metric(label=label, value=f"{score:.4f}")
-    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="premium-card">', unsafe_allow_html=True)
-    st.markdown('<h3 class="card-title">📊 Visual Distribution</h3>', unsafe_allow_html=True)
+    st.markdown("---")
+
+    st.subheader("📊 Visual Distribution")
     st.caption("Higher bars indicate greater influence on prediction outcomes.")
 
     chart_df = pd.DataFrame(
@@ -408,7 +384,6 @@ with tab_insights:
         index=FEATURE_NAMES
     )
     st.bar_chart(chart_df, use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────
 # Footer
