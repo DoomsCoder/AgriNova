@@ -20,46 +20,159 @@ logging.basicConfig(
 # Page Config
 # ──────────────────────────────────────────────
 st.set_page_config(
-    page_title="AgroNova – Crop Variety Classifier",
+    page_title="AgroNova – MLOps Dashboard",
     page_icon="🌿",
-    layout="centered"
+    layout="centered",
+    initial_sidebar_state="collapsed"
 )
 
 # ──────────────────────────────────────────────
-# Minimal Custom Styling (no frameworks)
+# Premium Custom CSS (SaaS-style)
 # ──────────────────────────────────────────────
 st.markdown("""
 <style>
-    /* Card-style containers */
-    .card {
-        background-color: #f9fafb;
-        border: 1px solid #e0e0e0;
-        border-radius: 12px;
-        padding: 24px 28px;
-        margin-bottom: 16px;
+    /* App background */
+    .stApp {
+        background-color: #f5f7f9;
+        font-family: 'Inter', sans-serif;
     }
-    /* Result highlight card */
-    .result-card {
-        background-color: #e8f5e9;
-        border: 1px solid #a5d6a7;
+
+    /* Centered Header */
+    .header-container {
+        text-align: center;
+        padding: 2rem 1rem;
+        margin-bottom: 2rem;
+    }
+    .header-title {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+    }
+    .header-subtitle {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #10b981;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 1rem;
+    }
+    .header-desc {
+        font-size: 1rem;
+        color: #64748b;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.5;
+    }
+
+    /* Premium Card Styles */
+    .premium-card {
+        background-color: #ffffff;
         border-radius: 12px;
-        padding: 20px 24px;
+        padding: 28px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        margin-bottom: 20px;
+        border: 1px solid #e2e8f0;
+    }
+    
+    /* Result Card (Green Theme) */
+    .success-card {
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1), 0 4px 6px -2px rgba(16, 185, 129, 0.05);
+        margin-top: 24px;
+        border: 1px solid #a7f3d0;
+        text-align: center;
+    }
+    .success-card h3 {
+        color: #065f46;
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    /* Top Feature Highlight Card */
+    .highlight-card {
+        background-color: #fffbeb;
+        border-left: 4px solid #f59e0b;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        margin-bottom: 24px;
+    }
+
+    /* Buttons */
+    .stButton>button {
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        padding: 0.5rem 1rem !important;
+        transition: all 0.2s ease !important;
+        border: none !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+    }
+    .stButton>button:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+    }
+    /* Primary Predict Button styling override */
+    div.row-widget.stButton:first-of-type > button {
+        background-color: #10b981 !important;
+        color: white !important;
+    }
+    div.row-widget.stButton:first-of-type > button:hover {
+        background-color: #059669 !important;
+    }
+
+    /* Inputs */
+    .stNumberInput>div>div>input {
+        border-radius: 8px !important;
+        background-color: #f8fafc !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+    
+    /* Selectbox */
+    .stSelectbox>div>div>div {
+        border-radius: 8px !important;
+    }
+
+    /* Tabs styling */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 24px;
+        margin-bottom: 24px;
         margin-top: 16px;
     }
+    .stTabs [data-baseweb="tab"] {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        font-weight: 600;
+    }
+
     /* Footer */
     .footer {
         text-align: center;
-        color: #9e9e9e;
-        font-size: 13px;
-        padding-top: 32px;
-        padding-bottom: 8px;
+        color: #94a3b8;
+        font-size: 0.875rem;
+        padding-top: 40px;
+        padding-bottom: 20px;
+        margin-top: 40px;
+        border-top: 1px solid #e2e8f0;
     }
-    /* Tab spacing fix */
-    div[data-baseweb="tab-list"] {
-        gap: 8px;
+
+    /* Metrics */
+    [data-testid="stMetricValue"] {
+        font-weight: 700 !important;
+        color: #0f172a !important;
     }
-    /* Subtle divider */
-    hr { border-top: 1px solid #e0e0e0; }
+    
+    /* Titles inside cards */
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1rem;
+        margin-top: 0;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -91,7 +204,7 @@ except FileNotFoundError:
     st.stop()
 
 # ──────────────────────────────────────────────
-# Pre-compute Metrics (cached – runs once)
+# Pre-compute Metrics (cached)
 # ──────────────────────────────────────────────
 @st.cache_data
 def get_performance_metrics():
@@ -107,31 +220,30 @@ def get_performance_metrics():
 
 accuracy, report_dict = get_performance_metrics()
 
-# ──────────────────────────────────────────────
-# Pre-compute Feature Importances (static – from model)
-# ──────────────────────────────────────────────
 importances      = model.feature_importances_
 top_feature_idx  = int(np.argmax(importances))
 top_feature_name = FEATURE_NAMES[top_feature_idx]
 
 # ──────────────────────────────────────────────
-# App Header
+# App Header (Centered, Modern)
 # ──────────────────────────────────────────────
-st.markdown("## 🌿 AgroNova")
-st.markdown("`MLOps Project  ·  Model v1.0  ·  Random Forest Classifier`")
-st.markdown(
-    "An end-to-end MLOps demo that classifies crop varieties from leaf measurements. "
-    "Explore predictions, model performance, and feature insights below."
-)
-st.markdown("---")
+st.markdown("""
+<div class="header-container">
+    <div class="header-title">🌿 AgroNova</div>
+    <div class="header-subtitle">MLOps Dashboard • Random Forest • v1.0</div>
+    <div class="header-desc">
+        A premium machine learning dashboard for crop variety classification based on leaf measurements. Experience seamless, dynamic inference with built-in model observability.
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────
 # Tabs
 # ──────────────────────────────────────────────
 tab_predict, tab_performance, tab_insights = st.tabs([
-    "🌱  Predict",
-    "📊  Performance",
-    "🔍  Insights",
+    "🌱 Predict",
+    "📊 Performance",
+    "🔍 Insights",
 ])
 
 # ══════════════════════════════════════════════
@@ -139,40 +251,41 @@ tab_predict, tab_performance, tab_insights = st.tabs([
 # ══════════════════════════════════════════════
 with tab_predict:
 
-    st.markdown("### 🌱 Crop Variety Prediction")
-    st.caption("Select a preset sample or enter your own measurements to classify a crop variety.")
-    st.markdown(" ")
-
-    # ── Preset Selector ──────────────────────
+    # ── Input Section (Card) ──
+    st.markdown('<div class="premium-card">', unsafe_allow_html=True)
+    st.markdown('<h3 class="card-title">📋 Measurement Input</h3>', unsafe_allow_html=True)
+    
     selected_demo = st.selectbox(
-        "🔎 Load a Sample Preset",
+        "🔎 Quick Demo (Presets)",
         list(SAMPLE_PRESETS.keys())
     )
     def_sl, def_sw, def_pl, def_pw = SAMPLE_PRESETS[selected_demo]
 
-    st.markdown(" ")
+    st.markdown("<br>", unsafe_allow_html=True)
 
-    # ── Input Card ───────────────────────────
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("**📋 Leaf & Petal Measurements**")
     col1, col2 = st.columns(2, gap="large")
     with col1:
         sepal_length = st.number_input("🌿 Leaf Length (cm)", min_value=0.0, value=def_sl, format="%.2f", key="sl")
+        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
         sepal_width  = st.number_input("🌿 Leaf Width (cm)",  min_value=0.0, value=def_sw, format="%.2f", key="sw")
     with col2:
         petal_length = st.number_input("🌸 Petal Length (cm)", min_value=0.0, value=def_pl, format="%.2f", key="pl")
+        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
         petal_width  = st.number_input("🌸 Petal Width (cm)",  min_value=0.0, value=def_pw, format="%.2f", key="pw")
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    # ── Action Buttons ────────────────────────
-    btn1, btn2, _ = st.columns([1.2, 1, 2])
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Buttons
+    btn1, btn2 = st.columns([1, 1])
     with btn1:
-        predict_clicked = st.button("🔍 Predict Variety", use_container_width=True)
+        predict_clicked = st.button("✨ Predict Variety", use_container_width=True)
     with btn2:
-        if st.button("🔄 Reset", use_container_width=True):
+        if st.button("🔄 Reset Form", use_container_width=True):
             st.rerun()
 
-    # ── Prediction Result ─────────────────────
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # ── Prediction Result ──
     if predict_clicked:
         inputs = [sepal_length, sepal_width, petal_length, petal_width]
         if any(v < 0 for v in inputs):
@@ -186,44 +299,43 @@ with tab_predict:
                 confidence    = max(proba) * 100
                 predicted_crop = CROP_VARIETIES.get(prediction, "Unknown")
 
-                # Result card
-                st.markdown('<div class="result-card">', unsafe_allow_html=True)
-                st.success(f"**🌱 Predicted Variety:** {predicted_crop}")
-                st.markdown('</div>', unsafe_allow_html=True)
+                # Result card (Green highlight)
+                st.markdown(f"""
+                <div class="success-card">
+                    <div style="font-size: 0.9rem; color: #047857; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px;">Model Prediction</div>
+                    <h3>{predicted_crop}</h3>
+                </div>
+                """, unsafe_allow_html=True)
 
-                # Confidence metrics
-                st.markdown(" ")
-                m1, m2, m3 = st.columns(3)
-                m1.metric("Confidence",      f"{confidence:.1f}%")
-                m2.metric("Predicted Class", f"Class {prediction}")
-                m3.metric("Total Classes",   "3")
-
-                # ── Dynamic Insight based on input ───────
-                st.markdown("---")
-                st.markdown("**📌 Prediction Insight**")
-
-                # Compare user's petal_length against training median (~3.75)
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                # Metrics Card
+                st.markdown('<div class="premium-card">', unsafe_allow_html=True)
+                st.markdown('<h3 class="card-title">🎯 Prediction Metrics</h3>', unsafe_allow_html=True)
+                m1, m2 = st.columns(2)
+                m1.metric("Confidence Score", f"{confidence:.1f}%")
+                m2.metric("Predicted Class ID", f"Class {prediction}")
+                
+                # Dynamic insight based on input
+                st.markdown("<hr style='margin: 1.5rem 0; border-top: 1px dashed #cbd5e1;'>", unsafe_allow_html=True)
                 if petal_length > 3.75:
                     st.info(
-                        f"📌 Your input has a **high Petal Length ({petal_length:.2f} cm)**, "
-                        f"which strongly influenced this prediction — "
-                        f"Petal Length is the model's most impactful feature."
+                        f"📌 **Insight:** Your input has a high Petal Length ({petal_length:.2f} cm), "
+                        f"which strongly influenced this prediction. Petal Length is the model's most impactful feature."
                     )
                 elif petal_length < 2.0:
                     st.info(
-                        f"📌 Your input has a **low Petal Length ({petal_length:.2f} cm)**, "
+                        f"📌 **Insight:** Your input has a low Petal Length ({petal_length:.2f} cm), "
                         f"which is a strong indicator of Setosa-type varieties."
                     )
                 else:
                     st.info(
-                        f"📌 Your Petal Length ({petal_length:.2f} cm) falls in a **transition zone** — "
-                        f"the model relied on multiple features to make this prediction."
+                        f"📌 **Insight:** Your Petal Length ({petal_length:.2f} cm) falls in a transition zone. "
+                        f"The model relied on multiple features to make this prediction."
                     )
+                st.markdown('</div>', unsafe_allow_html=True)
 
-                logging.info(
-                    f"Prediction: {input_array.tolist()} → {predicted_crop} "
-                    f"(Confidence: {confidence:.1f}%)"
-                )
+                logging.info(f"Prediction: {input_array.tolist()} → {predicted_crop} (Confidence: {confidence:.1f}%)")
 
             except Exception as e:
                 st.error(f"Prediction error: {str(e)}")
@@ -234,24 +346,14 @@ with tab_predict:
 # ══════════════════════════════════════════════
 with tab_performance:
 
-    st.markdown("### 📊 Model Performance Metrics")
-    st.caption(
-        "Evaluated on a held-out test set — 20% of the Iris dataset (`random_state=42`). "
-        "Metrics are computed once at startup."
-    )
-    st.markdown("---")
+    st.markdown('<div class="premium-card">', unsafe_allow_html=True)
+    st.markdown('<h3 class="card-title">📈 Overall Accuracy</h3>', unsafe_allow_html=True)
+    st.metric("Test Set Accuracy", f"{accuracy:.4f}", delta="Held-out dataset")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    # ── Accuracy ──────────────────────────────
-    st.markdown("#### Overall Accuracy")
-    acc_col, _ = st.columns([1, 2])
-    acc_col.metric("Test Set Accuracy", f"{accuracy:.4f}", delta="Held-out set")
-
-    st.markdown(" ")
-    st.markdown("---")
-
-    # ── Classification Report Table ───────────
-    st.markdown("#### 📋 Classification Report")
-    st.caption("Per-class breakdown of Precision, Recall, and F1-Score.")
+    st.markdown('<div class="premium-card">', unsafe_allow_html=True)
+    st.markdown('<h3 class="card-title">📋 Classification Report</h3>', unsafe_allow_html=True)
+    st.caption("Per-class breakdown of Precision, Recall, and F1-Score based on 20% test data.")
 
     rows = []
     for label in CLASS_LABELS:
@@ -265,73 +367,54 @@ with tab_performance:
         })
     report_df = pd.DataFrame(rows).set_index("Crop Variety")
     st.dataframe(report_df, use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown(" ")
-    st.markdown("---")
-
-    # ── Weighted Averages ─────────────────────
-    st.markdown("#### 📈 Weighted Averages")
-    st.caption("Aggregated scores weighted by class support.")
+    st.markdown('<div class="premium-card">', unsafe_allow_html=True)
+    st.markdown('<h3 class="card-title">⚖️ Weighted Averages</h3>', unsafe_allow_html=True)
     wa = report_dict["weighted avg"]
     c1, c2, c3 = st.columns(3)
-    c1.metric("Precision", f"{wa['precision']:.3f}")
-    c2.metric("Recall",    f"{wa['recall']:.3f}")
-    c3.metric("F1-Score",  f"{wa['f1-score']:.3f}")
+    c1.metric("Precision Avg", f"{wa['precision']:.3f}")
+    c2.metric("Recall Avg",    f"{wa['recall']:.3f}")
+    c3.metric("F1-Score Avg",  f"{wa['f1-score']:.3f}")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════
 # TAB 3 ─ INSIGHTS
 # ══════════════════════════════════════════════
 with tab_insights:
 
-    st.markdown("### 🔍 Feature Importance Analysis")
-    st.caption(
-        "Feature importance shows the **global influence** of each measurement "
-        "on the model's predictions — derived directly from the trained Random Forest."
-    )
-    st.markdown("---")
-
     # ── Static Global Insight ─────────────────
-    st.info(
-        f"🔥 Based on model behavior, **{top_feature_name}** is the most influential feature "
-        f"with an importance score of `{importances[top_feature_idx]:.4f}`."
-    )
+    st.markdown(f"""
+    <div class="highlight-card">
+        <div style="font-weight: 700; color: #b45309; margin-bottom: 4px;">🔥 Top Influencing Feature</div>
+        <div style="color: #92400e;">Based on Random Forest model behavior, <b>{top_feature_name}</b> is the most influential feature with a global importance score of <code>{importances[top_feature_idx]:.4f}</code>.</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.markdown(" ")
-
-    # ── Importance Score Cards ────────────────
-    st.markdown("#### 📌 Importance Scores per Feature")
+    st.markdown('<div class="premium-card">', unsafe_allow_html=True)
+    st.markdown('<h3 class="card-title">📌 Feature Importance Scores</h3>', unsafe_allow_html=True)
     cols = st.columns(4)
     for col, name, score in zip(cols, FEATURE_NAMES, importances):
         label = f"⭐ {name}" if name == top_feature_name else name
         col.metric(label=label, value=f"{score:.4f}")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown(" ")
-    st.markdown("---")
-
-    # ── Bar Chart ─────────────────────────────
-    st.markdown("#### 📊 Feature Importance Chart")
-    st.caption("Higher bars = greater influence on prediction outcomes.")
+    st.markdown('<div class="premium-card">', unsafe_allow_html=True)
+    st.markdown('<h3 class="card-title">📊 Visual Distribution</h3>', unsafe_allow_html=True)
+    st.caption("Higher bars indicate greater influence on prediction outcomes.")
 
     chart_df = pd.DataFrame(
         {"Importance Score": importances},
         index=FEATURE_NAMES
     )
     st.bar_chart(chart_df, use_container_width=True)
-
-    st.markdown("---")
-
-    # ── Interpretation Guide ──────────────────
-    st.markdown("#### 💡 How to Read This")
-    g1, g2 = st.columns(2)
-    g1.markdown("**High Importance**\nFeature strongly separates crop classes. Small changes have big impact.")
-    g2.markdown("**Low Importance**\nFeature contributes less to class separation. Model relies on it less.")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────
 # Footer
 # ──────────────────────────────────────────────
-st.markdown("---")
 st.markdown(
-    '<div class="footer">AgroNova &nbsp;|&nbsp; MLOps Project &nbsp;|&nbsp; '
-    'Built with Streamlit &amp; scikit-learn</div>',
+    '<div class="footer">AgroNova • MLOps Project • Vedant Kakade</div>',
     unsafe_allow_html=True
 )
+
